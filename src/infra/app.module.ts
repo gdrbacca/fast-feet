@@ -17,6 +17,3 @@ import { HTTPModule } from './http/http.module';
   ]
 })
 export class AppModule {}
-
-
-//  readme e github

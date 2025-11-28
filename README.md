@@ -61,6 +61,8 @@ To run the application:
 npm run start
 ```
 
+\*Talvez seja necessário adicionar "type":"module" no package.json, para os testes.
+
 To run unit tests:
 
 ```bash
