@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  DELIVERYMAN
+}
+
+model User {
+  id       String   @id @default(uuid())
+  name     String
+  cpf      String   @unique
+  password String
+  role     UserRole @default(ADMIN)
+
+  orders                Order[]
+  orderAndDeliveryUsers OrderAndDeliveryUser[]
+
+  @@map("user")
+}
+
+model Recipient {
+  id      String @id @default(uuid())
+  name    String
+  address String
+  number  String
+
+  orders       Order[]
+  notification Notification[]
+
+  @@map("recipient")
+}
+
+enum OrderStatus {
+  PENDING
+  PICKED_UP
+  DELIVERED
+  REFUND
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  description String
+  status      OrderStatus @default(PENDING)
+  recipientId String      @map("recipient_id")
+  userId      String      @map("user_id")
+  latitude    Decimal
+  longitude   Decimal
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime?   @updatedAt @map("updated_at")
+
+  recipient Recipient @relation(fields: [recipientId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  attachment            Attachment[]
+  orderAndDeliveryUsers OrderAndDeliveryUser[]
+
+  @@map("order")
+}
+
+model OrderAndDeliveryUser {
+  orderId String @unique
+  userId  String
+
+  user  User  @relation(fields: [userId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("orderAndDeliveryUser")
+}
+
+model Attachment {
+  id      String  @id @default(uuid())
+  url     String
+  title   String
+  orderId String? @map("order_id")
+
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@map("attachment")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  recipientId String   @map("recipient_id")
+  title       String
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  recipient Recipient? @relation(fields: [recipientId], references: [id])
+
+  @@map("notification")
+}
